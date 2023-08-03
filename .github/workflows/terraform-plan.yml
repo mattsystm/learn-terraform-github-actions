@@ -2,11 +2,15 @@ name: "Terraform Plan"
 
 on:
   pull_request:
+    branches:
+      - develop
+      - main
 
 env:
   TF_CLOUD_ORGANIZATION: "matt-aws"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_WORKSPACE: "learn-terraform-github-actions"
+  # TF_CLOUD_HOSTNAME: "app.terraform.io"
   CONFIG_DIRECTORY: "./"
 
 jobs:
@@ -22,23 +26,25 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Upload Configuration
-        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.2
         id: plan-upload
         with:
           workspace: ${{ env.TF_WORKSPACE }}
           directory: ${{ env.CONFIG_DIRECTORY }}
+          # hostname: ${{ env.TF_CLOUD_HOSTNAME }}
           speculative: true
 
       - name: Create Plan Run
-        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.2
         id: plan-run
         with:
           workspace: ${{ env.TF_WORKSPACE }}
           configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
+          # hostname: ${{ env.TF_CLOUD_HOSTNAME }}
           plan_only: true
 
       - name: Get Plan Output
-        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
+        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.2
         id: plan-output
         with:
           plan: ${{ fromJSON(steps.plan-run.outputs.payload).data.relationships.plan.data.id }}
